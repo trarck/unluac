@@ -1045,24 +1045,27 @@ public class Decompiler {
 
       if(next instanceof TestSetNode) break;
 
-      if (next instanceof  TestNode){
-          if (downTestNode(stack)) {
-              continue;
-          }
-      }
-
       if(next.end == begin) {
         branch = new OrBranch(popCondition(stack).invert(), branch);
       } else if(next.end == branch.end) {
         branch = new AndBranch(popCondition(stack), branch);
       } else {
-        break;
+          if (next instanceof  TestNode){
+            if (downTestNode(stack,begin,branch.end)) {
+              continue;
+            }
+          }
+          break;
       }
     }
     return branch;
   }
 
-  public boolean downTestNode(Stack<Branch> stack){
+  public boolean haveRelation(Branch branch,int begin,int end){
+      return branch.end==begin || branch.end==end;
+  }
+
+  public boolean downTestNode(Stack<Branch> stack,int begin,int end){
 
       if (stack.size()==1) return false;
 
@@ -1078,7 +1081,7 @@ public class Decompiler {
 
           branch=stack.pop();
 
-          if (branch instanceof TestNode){
+          if ((branch instanceof TestNode) && !haveRelation(branch,begin,end)){
               list.add(branch);
           }else{
               retValue=true;

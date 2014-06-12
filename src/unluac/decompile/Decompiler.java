@@ -1042,7 +1042,15 @@ public class Decompiler {
     }
     while(!stack.isEmpty()) {
       Branch next = stack.peek();
+
       if(next instanceof TestSetNode) break;
+
+      if (next instanceof  TestNode){
+          if (downTestNode(stack)) {
+              continue;
+          }
+      }
+
       if(next.end == begin) {
         branch = new OrBranch(popCondition(stack).invert(), branch);
       } else if(next.end == branch.end) {
@@ -1052,6 +1060,46 @@ public class Decompiler {
       }
     }
     return branch;
+  }
+
+  public boolean downTestNode(Stack<Branch> stack){
+
+      if (stack.size()==1) return false;
+
+      //check until not TestNode
+
+      ArrayList<Branch> list=new ArrayList<Branch>();
+
+      Branch branch=null;
+
+      boolean retValue=false;
+
+      while (!stack.isEmpty()){
+
+          branch=stack.pop();
+
+          if (branch instanceof TestNode){
+              list.add(branch);
+          }else{
+              retValue=true;
+              break;
+          }
+      }
+
+      //restore stack
+      if (list.size()>0) {
+
+          for (int i = list.size()-1; i >= 0; i--) {
+              stack.push(list.get(i));
+          }
+      }
+
+      //if have TestNode add it
+      if (retValue){
+          stack.push(branch);
+      }
+
+      return retValue;
   }
   
   public Branch popSetCondition(Stack<Branch> stack, int assignEnd) {

@@ -1089,7 +1089,7 @@ public boolean checkNextTest(Stack<Branch> stack,int begin,int end){
 
       //check until not TestNode
 
-      ArrayList<Branch> list=new ArrayList<Branch>();
+      LinkedList<Branch> list=new LinkedList<Branch>();
 
       Branch branch=null;
 
@@ -1109,7 +1109,7 @@ public boolean checkNextTest(Stack<Branch> stack,int begin,int end){
       if (!stack.isEmpty()){
           //this is look for,put on top
           branch=stack.pop();
-          list.add(branch);
+          list.addFirst(branch);
       }
 
       //restore stack

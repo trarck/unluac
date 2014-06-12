@@ -12,8 +12,16 @@
 --  print("b")
 --end
 
-if 2<(t or y) or 1 < d and 5 < (b or c) and 4 < (e or f) then
+--if 1 < d and 5 < (b or c) and 4 < (e or f) then
+--    print("a")
+--  else
+--    print("b")
+--  end
+
+--if id and (not hp_info or id > 0 and hp_info[i]._hp_perc ~= 0) then
+if (id and id>0) and not(hp_info and hp_info[i]._hp_perc ==0 ) then
+--if a<1 and b and b<2 and (c or d)>2 then
     print("a")
-  else
+else
     print("b")
-  end
+end

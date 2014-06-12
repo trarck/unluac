@@ -1051,7 +1051,7 @@ public class Decompiler {
         branch = new AndBranch(popCondition(stack), branch);
       } else {
           if (next instanceof  TestNode){
-            if (downTestNode(stack,begin,branch.end)) {
+            if (downTestNode(stack,begin,branch.end,branch.line)) {
               continue;
             }
           }
@@ -1061,11 +1061,29 @@ public class Decompiler {
     return branch;
   }
 
-  public boolean haveRelation(Branch branch,int begin,int end){
-      return branch.end==begin || branch.end==end;
-  }
+public boolean haveRelation(Branch branch,int begin,int end){
+  return branch.end==begin || branch.end==end;
+}
 
-  public boolean downTestNode(Stack<Branch> stack,int begin,int end){
+public boolean isTestGroup(Branch branch,int begin,int end,int line){
+    return branch.end==line;
+}
+
+public boolean checkNextTest(Stack<Branch> stack,int begin,int end){
+
+    Branch next=stack.pop();
+
+    Branch next2=stack.peek();
+
+    if (haveRelation(next2,begin,end)) {
+        //调整位置
+
+        return true;
+    }
+    return false;
+}
+
+  public boolean downTestNode(Stack<Branch> stack,int begin,int end,int line){
 
       if (stack.size()==1) return false;
 
@@ -1081,12 +1099,17 @@ public class Decompiler {
 
           branch=stack.pop();
 
-          if ((branch instanceof TestNode) && !haveRelation(branch,begin,end)){
+          if ((branch instanceof TestNode) && isTestGroup(branch,begin,end,line)){
               list.add(branch);
-          }else{
               retValue=true;
               break;
           }
+      }
+
+      if (!stack.isEmpty()){
+          //this is look for,put on top
+          branch=stack.pop();
+          list.add(branch);
       }
 
       //restore stack
@@ -1097,10 +1120,10 @@ public class Decompiler {
           }
       }
 
-      //if have TestNode add it
-      if (retValue){
-          stack.push(branch);
-      }
+//      //if have TestNode add it
+//      if (retValue){
+//          stack.push(branch);
+//      }
 
       return retValue;
   }

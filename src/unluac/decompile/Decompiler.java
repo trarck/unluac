@@ -1098,10 +1098,9 @@ public boolean checkNextTest(Stack<Branch> stack,int begin,int end){
       while (!stack.isEmpty()){
 
           branch=stack.pop();
-
+          list.add(branch);
           if ((branch instanceof TestNode) && isTestGroup(branch,begin,end,line)){
-              list.add(branch);
-              retValue=true;
+              retValue=!stack.isEmpty();
               break;
           }
       }

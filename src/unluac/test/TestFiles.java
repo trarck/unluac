@@ -105,6 +105,6 @@ public class TestFiles {
      "iftest"
   };
   
-  public static TestSuite suite = new TestSuite("./test/src/", tests);
+  public static TestSuite suite = new TestSuite(".\\test\\src\\", tests);
   
 }

@@ -1069,26 +1069,26 @@ public boolean isTestGroup(Branch branch,int begin,int end,int line){
     return branch.end==line;
 }
 
-public boolean checkNextTest(Stack<Branch> stack,int begin,int end){
-
-    Branch next=stack.pop();
-
-    Branch next2=stack.peek();
-
-    if (haveRelation(next2,begin,end)) {
-        //调整位置
-
-        return true;
-    }
-    return false;
-}
+//public boolean checkNextTest(Stack<Branch> stack,int begin,int end){
+//
+//    Branch next=stack.pop();
+//
+//    Branch next2=stack.peek();
+//
+//    if (haveRelation(next2,begin,end)) {
+//        //调整位置
+//
+//        return true;
+//    }
+//    return false;
+//}
 
   public boolean downTestNode(Stack<Branch> stack,int begin,int end,int line){
-
+      //如果栈的大小为1，则无需处理
       if (stack.size()==1) return false;
 
       //check until not TestNode
-
+      //保存栈的内容，然后恢复到栈中
       LinkedList<Branch> list=new LinkedList<Branch>();
 
       Branch branch=null;
@@ -1099,6 +1099,8 @@ public boolean checkNextTest(Stack<Branch> stack,int begin,int end){
 
           branch=stack.pop();
           list.add(branch);
+
+          //找到是(a or b)的形式的Test
           if ((branch instanceof TestNode) && isTestGroup(branch,begin,end,line)){
               retValue=!stack.isEmpty();
               break;
@@ -1113,7 +1115,6 @@ public boolean checkNextTest(Stack<Branch> stack,int begin,int end){
 
       //restore stack
       if (list.size()>0) {
-
           for (int i = list.size()-1; i >= 0; i--) {
               stack.push(list.get(i));
           }

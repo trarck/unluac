@@ -19,12 +19,12 @@
 --end
 local f=5
 local d=7
-local e=8
+local e={}
 
-if 1 < d and  4 < (e or f) then
-print("a")
+if 1<d and 2<(e or {}).id or f and 10>(e or f).id then
+    print("a")
 else
-print("b")
+    print("b")
 end
 
 --if 1 < d and 5 < (b or c) or 4 < (g or f) then

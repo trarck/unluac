@@ -57,6 +57,8 @@ import unluac.parse.LBoolean;
 import unluac.parse.LFunction;
 import unluac.util.Stack;
 
+import javax.swing.plaf.nimbus.State;
+
 public class Decompiler {
   
   private final int registers;
@@ -839,6 +841,13 @@ public class Decompiler {
           backups.push(backup);
 
           //stop condition break by TestSetNode
+          //like this
+          // local e={}
+          //  if 1<d and 2<(e or {}).id then
+          //     xxx
+          //  else
+          //     xxx
+          //  end
           if (currentBranch instanceof TestSetNode && !stack.isEmpty()){
             Branch nextBranch=stack.peek();
 
@@ -1081,6 +1090,15 @@ public boolean isTestGroup(Branch branch,int begin,int end,int line){
 //    return branch.end==line;
     return branch.begin+1==branch.end;
 }
+public boolean haveRelation2(Branch branch,Stack<Branch> stack){
+
+    //check have relation between stack first not TestGroup
+    return !stack.isEmpty() && (branch.begin==stack.peek().end || branch.end==stack.peek().end);
+}
+
+public boolean haveRelationBetweenBranch(Branch a,Branch b){
+    return a.begin==b.end || a.end==b.end || a.end==b.begin;
+}
 
 //public boolean checkNextTest(Stack<Branch> stack,int begin,int end){
 //
@@ -1160,16 +1178,21 @@ public boolean downTestNode(Stack<Branch> stack,int begin,int end,int line){
 
         branch=stack.pop();
 
-
-
         //找到不是(a or b)的形式的Branch
         if ( (branch instanceof TestNode) && isTestGroup(branch,begin,end,line)){
             //是(a or) 的形式，加入列表
             list.add(branch);
         }else{
             //不是，则放入栈顶
-            retValue=true;
-            list.addFirst(branch);
+            //检查上一个元素是否匹配
+            Branch last=list.getLast();
+            if (!haveRelationBetweenBranch(last,branch)) {
+                retValue = true;
+                list.addFirst(branch);
+            }else{
+                retValue=false;
+                list.add(branch);
+            }
             break;
         }
     }

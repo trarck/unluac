@@ -67,3 +67,7 @@ local lackHeroConfirm = function(self, callback)
         callback()
     end
 end
+
+local lackHeroConfirm2 = function(self, callback)
+     return m and 1.35 or 1,(n and 4 or 2)
+end

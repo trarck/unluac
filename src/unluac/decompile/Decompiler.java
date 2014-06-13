@@ -811,6 +811,9 @@ public class Decompiler {
               isAssignNode = true;
             }
           }
+
+          Branch currentBranch=stack.peek();
+
           if(!compareCorrect && assignEnd - 1 == stack.peek().begin && code.op(stack.peek().begin) == Op.LOADBOOL && code.C(stack.peek().begin) != 0) {
             backup = null;
             int begin = stack.peek().begin;
@@ -834,6 +837,15 @@ public class Decompiler {
             backup.reverse();
           }
           backups.push(backup);
+
+          //stop condition break by TestSetNode
+          if (currentBranch instanceof TestSetNode && !stack.isEmpty()){
+            Branch nextBranch=stack.peek();
+
+            if (nextBranch.begin==currentBranch.line){
+                break;
+            }
+          }
         } while(!stack.isEmpty());
         do {
           Branch cond = conditions.pop();

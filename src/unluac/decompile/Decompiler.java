@@ -1062,7 +1062,7 @@ public class Decompiler {
       } else if(next.end == branch.end) {
         branch = new AndBranch(popCondition(stack), branch);
       } else {
-          if (next instanceof  TestNode){
+          if (next instanceof  TestNode) {
             if (downTestNode(stack,begin,branch.end,branch.line)) {
               continue;
             }
@@ -1078,7 +1078,8 @@ public boolean haveRelation(Branch branch,int begin,int end){
 }
 
 public boolean isTestGroup(Branch branch,int begin,int end,int line){
-    return branch.end==line;
+//    return branch.end==line;
+    return branch.begin+1==branch.end;
 }
 
 //public boolean checkNextTest(Stack<Branch> stack,int begin,int end){
@@ -1095,50 +1096,98 @@ public boolean isTestGroup(Branch branch,int begin,int end,int line){
 //    return false;
 //}
 
-  public boolean downTestNode(Stack<Branch> stack,int begin,int end,int line){
-      //如果栈的大小为1，则无需处理
-      if (stack.size()==1) return false;
+//  public boolean downTestNode(Stack<Branch> stack,int begin,int end,int line){
+//      //如果栈的大小为1，则无需处理
+//      if (stack.size()==1) return false;
+//
+//      //check until not TestNode
+//      //保存栈的内容，然后恢复到栈中
+//      LinkedList<Branch> list=new LinkedList<Branch>();
+//
+//      Branch branch=null;
+//
+//      boolean retValue=false;
+//
+//      while (!stack.isEmpty()){
+//
+//          branch=stack.pop();
+//          list.add(branch);
+//
+//          //找到是(a or b)的形式的Test
+//          if ((branch instanceof TestNode) && isTestGroup(branch,begin,end,line)){
+//              retValue=!stack.isEmpty();
+//              break;
+//          }
+//      }
+//
+//      if (!stack.isEmpty()){
+//          //this is look for,put on top
+//          branch=stack.pop();
+//          list.addFirst(branch);
+//      }
+//
+//      //restore stack
+//      if (list.size()>0) {
+//          for (int i = list.size()-1; i >= 0; i--) {
+//              stack.push(list.get(i));
+//          }
+//      }
+//
+////      //if have TestNode add it
+////      if (retValue){
+////          stack.push(branch);
+////      }
+//
+//      return retValue;
+//  }
 
-      //check until not TestNode
-      //保存栈的内容，然后恢复到栈中
-      LinkedList<Branch> list=new LinkedList<Branch>();
+public boolean downTestNode(Stack<Branch> stack,int begin,int end,int line){
+    //如果栈的大小为1，则无需处理
+    if (stack.size()==1) return false;
 
-      Branch branch=null;
+    Branch branch=stack.peek();
 
-      boolean retValue=false;
+    //如果第一个元素不是(a or b)的形势，则不移动元素
+    if (!isTestGroup(branch,begin,end,line)) return false;
 
-      while (!stack.isEmpty()){
+    //check until not TestNode
+    //保存栈的内容，然后恢复到栈中
+    LinkedList<Branch> list=new LinkedList<Branch>();
 
-          branch=stack.pop();
-          list.add(branch);
+    boolean retValue=false;
 
-          //找到是(a or b)的形式的Test
-          if ((branch instanceof TestNode) && isTestGroup(branch,begin,end,line)){
-              retValue=!stack.isEmpty();
-              break;
-          }
-      }
+    while (!stack.isEmpty()){
 
-      if (!stack.isEmpty()){
-          //this is look for,put on top
-          branch=stack.pop();
-          list.addFirst(branch);
-      }
+        branch=stack.pop();
 
-      //restore stack
-      if (list.size()>0) {
-          for (int i = list.size()-1; i >= 0; i--) {
-              stack.push(list.get(i));
-          }
-      }
+
+
+        //找到不是(a or b)的形式的Branch
+        if ( (branch instanceof TestNode) && isTestGroup(branch,begin,end,line)){
+            //是(a or) 的形式，加入列表
+            list.add(branch);
+        }else{
+            //不是，则放入栈顶
+            retValue=true;
+            list.addFirst(branch);
+            break;
+        }
+    }
+
+    //restore stack
+    if (list.size()>0) {
+        for (int i = list.size()-1; i >= 0; i--) {
+            stack.push(list.get(i));
+        }
+    }
 
 //      //if have TestNode add it
 //      if (retValue){
 //          stack.push(branch);
 //      }
 
-      return retValue;
-  }
+    return retValue;
+}
   
   public Branch popSetCondition(Stack<Branch> stack, int assignEnd) {
     //System.err.println("assign end " + assignEnd);

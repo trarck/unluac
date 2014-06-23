@@ -577,7 +577,7 @@ public class Decompiler {
   }
   
   private ArrayList<Block> blocks;
-  
+
   private OuterBlock handleBranches(boolean first) {
     List<Block> oldBlocks = blocks;
     blocks = new ArrayList<Block>();
@@ -585,6 +585,7 @@ public class Decompiler {
     blocks.add(outer);
     boolean[] isBreak = new boolean[length + 1];
     boolean[] loopRemoved = new boolean[length + 1];
+    boolean[]  breakImmediateEnclosing= new boolean[length + 1];
     if(!first) {
       for(Block block : oldBlocks) {
         if(block instanceof AlwaysLoop) {
@@ -869,7 +870,12 @@ public class Decompiler {
             for(int iline = Math.max(cond.end, immediateEnclosing.end - 1); iline >= Math.max(cond.begin, immediateEnclosing.begin); iline--) {
               if(code.op(iline) == Op.JMP && iline + 1 + code.sBx(iline) == breakTarget) {
                 cond.end = iline;
-                break;
+                //fix wrap of if block and formate like "if xxx then else break end"
+                if(!breakImmediateEnclosing[iline]) {
+                    breakImmediateEnclosing[iline] = true;
+                    break;
+                }
+                //continue search
               }
             }
           }

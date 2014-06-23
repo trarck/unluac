@@ -18,3 +18,23 @@ while a do
     g()
   end
 end
+
+local function getLvupAtt(self, id)
+    local att = {}
+    local row = ed.getDataTable("SkillGroup")[self.hid][id]
+    local index = 1
+    while true do
+        local field = row["Growth " .. index .. " Field"]
+        if field then
+            local popupstr=row["grouth"]
+            if popupstr then
+                index=index+1
+            else
+                break
+            end
+        else
+            break
+        end
+    end
+    return att
+end

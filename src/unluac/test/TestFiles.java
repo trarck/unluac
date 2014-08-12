@@ -29,6 +29,7 @@ public class TestFiles {
     "booleanassign09",
     "booleanassign10",
     "booleanassign11",
+
     "booleanselfassign01",
     "booleanexpression01",
     "booleanexpression02",
@@ -102,7 +103,9 @@ public class TestFiles {
     "report02e",
     "report03",
     "tableexpr",
-     "iftest"
+     "iftest",
+     "booleanassign12"
+          //,
   };
   
   public static TestSuite suite = new TestSuite("./test/src/", tests);

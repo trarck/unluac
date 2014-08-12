@@ -1440,6 +1440,9 @@ public boolean downTestNode(Stack<Branch> stack,int begin,int end,int line){
       case LEN:
       case CONCAT:
       case CLOSURE:
+      case SETTABLE:
+      case SETLIST:
+
         return code.A(line);
       case LOADNIL:
         if(code.A(line) == code.B(line)) {
@@ -1450,7 +1453,7 @@ public boolean downTestNode(Stack<Branch> stack,int begin,int end,int line){
       case SETGLOBAL:
       case SETUPVAL:
       case SETTABUP:
-      case SETTABLE:
+//      case SETTABLE:
       case JMP:
       case TAILCALL:
       case RETURN:
@@ -1467,7 +1470,7 @@ public boolean downTestNode(Stack<Branch> stack,int begin,int end,int line){
       case LE:
       case TEST:
       case TESTSET:
-      case SETLIST:
+//      case SETLIST:
         return -1;
       case CALL: {
         if(code.C(line) == 2) {

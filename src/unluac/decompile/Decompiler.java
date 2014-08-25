@@ -821,20 +821,22 @@ public class Decompiler {
           //this is correct way.the below ignore empty else have problem.
           if (currentBranch.end-1>=1) {
               Block enclosing = enclosingUnprotectedBlock(currentBranch.begin);
-              if (enclosing != null && (first || !(enclosing instanceof AlwaysLoop))) {
+              if (enclosing != null && (first || !(enclosing instanceof AlwaysLoop || enclosing instanceof Break))) {
                   if(enclosing.getLoopback() == currentBranch.end) {
                       int emptyElseEnd=enclosing.end;
                       //skip used
-                      while (skip[emptyElseEnd-1]){
+                      while (code.op(emptyElseEnd-1)==Op.JMP && skip[emptyElseEnd-1]){
                           --emptyElseEnd;
                       }
 
-                      int stackSize=stack.size();
+                      if (code.op(emptyElseEnd-1)==Op.JMP) {
+                          int stackSize = stack.size();
 
-                      emptyElseEnd=emptyElseEnd-stackSize+1;
+                          emptyElseEnd = emptyElseEnd - stackSize + 1;
 
-                      if (code.op(emptyElseEnd-1)==Op.JMP){
-                          currentBranch.end=emptyElseEnd;
+                          if (code.op(emptyElseEnd - 1) == Op.JMP) {
+                              currentBranch.end = emptyElseEnd;
+                          }
                       }
                   }
               }

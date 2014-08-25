@@ -927,6 +927,44 @@ public class Decompiler {
                 blocks.add(new IfThenEndBlock(function, cond, backup, r));
               } else {
                 skip[cond.end - 1] = true; //Skip the JMP over the else block
+
+                /*
+                 skip the empty else jump.
+                 the logic is same,but byte code is not same.
+
+                 ep:
+                    if a then
+                        if b then
+                            print("b")
+                        else
+                            if  c then
+                                if  d the
+                                    print("d")
+                                else
+                                    --empty
+                                end
+                            else
+                                --empty
+                            end
+                        end
+                    else
+                        print("a2")
+                    end
+                    print("x")
+                 */
+                /*
+                int skipOtherLine=cond.end-2;
+                while (skipOtherLine >0 ){
+                    //check the same as
+                    if (code.op(skipOtherLine)==Op.JMP && (skipOtherLine+1+ code.sBx(skipOtherLine))==loopback2) {
+                        skip[skipOtherLine] = true;
+                        skipOtherLine--;
+                    }else{
+                        break;
+                    }
+                }
+                */
+
                 boolean emptyElse = tail == cond.end;
                 IfThenElseBlock ifthen = new IfThenElseBlock(function, cond, originalTail, emptyElse, r);
                 blocks.add(ifthen);

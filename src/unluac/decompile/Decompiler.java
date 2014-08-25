@@ -819,7 +819,7 @@ public class Decompiler {
 
           //fix empty else branch end
           //this is correct way.the below ignore empty else have problem.
-          if (currentBranch.end-1>=1) {
+          if (first && currentBranch.end-1>=1) {
               Block enclosing = enclosingUnprotectedBlock(currentBranch.begin);
               if (enclosing != null) {
                   if(enclosing.getLoopback() == currentBranch.end) {

@@ -71,7 +71,7 @@
 --local lackHeroConfirm2 = function(self, callback)
 --     return m and 1.35 or 1,(n and 4 or 2)
 --end
---
+
 local emptyElseTest = function()
     local a = 1
     local b = 2
@@ -99,4 +99,18 @@ local emptyElseTest = function()
         return false
     end
     return false
+end
+
+local z = 4
+while true do
+    if z then
+        local data1 = getdata()
+        if data1 == "valid" then
+            local data3 = getdata(data1)
+            if data3 then
+                print("valid data")
+            end
+        end
+        break
+    end
 end

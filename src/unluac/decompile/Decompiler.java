@@ -817,6 +817,29 @@ public class Decompiler {
 
           Branch currentBranch=stack.peek();
 
+          //fix empty else branch end
+          //this is correct way.the below ignore empty else have problem.
+          if (currentBranch.end-1>=1) {
+              Block enclosing = enclosingUnprotectedBlock(currentBranch.begin);
+              if (enclosing != null) {
+                  if(enclosing.getLoopback() == currentBranch.end) {
+                      int emptyElseEnd=enclosing.end;
+                      //skip used
+                      while (skip[emptyElseEnd-1]){
+                          --emptyElseEnd;
+                      }
+
+                      int stackSize=stack.size();
+
+                      emptyElseEnd=emptyElseEnd-stackSize+1;
+
+                      if (code.op(emptyElseEnd-1)==Op.JMP){
+                          currentBranch.end=emptyElseEnd;
+                      }
+                  }
+              }
+          }
+
           if(!compareCorrect && assignEnd - 1 == stack.peek().begin && code.op(stack.peek().begin) == Op.LOADBOOL && code.C(stack.peek().begin) != 0) {
             backup = null;
             int begin = stack.peek().begin;

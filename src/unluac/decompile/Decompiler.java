@@ -819,9 +819,9 @@ public class Decompiler {
 
           //fix empty else branch end
           //this is correct way.the below ignore empty else have problem.
-          if (first && currentBranch.end-1>=1) {
+          if (currentBranch.end-1>=1) {
               Block enclosing = enclosingUnprotectedBlock(currentBranch.begin);
-              if (enclosing != null) {
+              if (enclosing != null && (first || !(enclosing instanceof AlwaysLoop))) {
                   if(enclosing.getLoopback() == currentBranch.end) {
                       int emptyElseEnd=enclosing.end;
                       //skip used

@@ -72,58 +72,31 @@
 --     return m and 1.35 or 1,(n and 4 or 2)
 --end
 --
---local checkHeroTask = function(self, addhid, removehid, message)
---    local a = 1
---    local b=2
---    local c=3
---    local d=4
---    local e=5
---
---    if a then
---        if b then
---            print("b")
---        else
---            if c then
---                if d then
---                    print("d")
---                elseif e then
---                    print("e")
-----                    return true
---                else
-----                    print("f")
---                end
---            end
---        end
---    else
---        return false
---    end
---    return false
---end
-
-local a = 1
-local b=2
-local c=3
-local d=4
-local e=5
-
-if a then
-    if b then
-        print("b")
-    else
-        if c then
-            if d then
-                print("d")
---            elseif e then
---                print("e")
---                --                    return true
-            else
-                --                    print("f")
-            end
+local emptyElseTest = function()
+    local a = 1
+    local b = 2
+    local c = 3
+    local d = 4
+    local e = 5
+    if a then
+        if b then
+            print("b")
         else
+            if c then
+                if  d then
+                    if e then
+                        print("d")
+                    else
+                    end
+                else
+                end
 
+            else
+            end
         end
+    else
+        print("11")
+        return false
     end
-else
     return false
 end
-return false

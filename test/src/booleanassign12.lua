@@ -1,3 +1,8 @@
-local size=a and a:b() or {a=1,b=2,c=3}
-print(size)
+local x = x or a == b
+x = true
 
+local y = x or a ~= b
+y = true
+
+local z = a == b or c == d
+z = true

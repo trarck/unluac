@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 
+import unluac.Configuration;
 import unluac.parse.BHeader;
 import unluac.parse.LFunction;
 import unluac.parse.LLocal;
@@ -97,18 +98,25 @@ public class Compare {
   }
   
   public static LFunction file_to_function(String filename) {
+    RandomAccessFile file = null;
     try {
-      RandomAccessFile file = new RandomAccessFile(filename, "r");
+      file = new RandomAccessFile(filename, "r");
       ByteBuffer buffer = ByteBuffer.allocate((int) file.length());
       buffer.order(ByteOrder.LITTLE_ENDIAN);
       int len = (int) file.length();
       FileChannel in = file.getChannel();
       while(len > 0) len -= in.read(buffer);
       buffer.rewind();
-      BHeader header = new BHeader(buffer);
-      return header.function.parse(buffer, header);
+      BHeader header = new BHeader(buffer, new Configuration());
+      return header.main;
     } catch(IOException e) {
       return null;
+    } finally {
+      if(file != null) {
+        try {
+          file.close();
+        } catch(IOException e) {}
+      }
     }
   }
   

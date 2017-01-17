@@ -19,6 +19,7 @@ while a do
   end
 end
 
+
 local function getLvupAtt(self, id)
     local att = {}
     local row = ed.getDataTable("SkillGroup")[self.hid][id]

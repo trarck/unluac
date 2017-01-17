@@ -6,14 +6,23 @@ import java.io.InputStreamReader;
 
 public class LuaC {
 
-  public static void compile(String in, String out) throws IOException {
-    String luac;
+  public static void compile(LuaSpec spec, String in, String out) throws IOException {
+    String luac = spec.getLuaCName();
+    luac = System.getProperty(luac, luac);
     if(System.getProperty("os.name").contains("Windows")) {
-      luac = "luac.exe";
-    } else {
-      luac = "luac";
+      luac = luac + ".exe";
     }
-    ProcessBuilder pb = new ProcessBuilder(luac, "-o", out, in);
+    String[] args = spec.getArgs();
+    String[] full = new String[4 + args.length];
+    int i = 0;
+    full[i++] = luac;
+    for(String arg : args) {
+      full[i++] = arg;
+    }
+    full[i++] = "-o";
+    full[i++] = out;
+    full[i++] = in;
+    ProcessBuilder pb = new ProcessBuilder(full);
     pb.directory(null);
     Process p = pb.start();
     while(true) {
@@ -29,13 +38,13 @@ public class LuaC {
               System.err.println(line);
             }
           } while(line != null);
-            
+
           throw new IOException("luac failed on file: " + in);
         }
       } catch(InterruptedException e ) {
-        
+
       }
-    } 
+    }
   }
-  
+
 }

@@ -1,6 +1,8 @@
 package unluac.decompile.expression;
 
+import unluac.decompile.Decompiler;
 import unluac.decompile.Output;
+import unluac.decompile.Walker;
 
 public class UnaryExpression extends Expression {
 
@@ -14,15 +16,26 @@ public class UnaryExpression extends Expression {
   }
 
   @Override
+  public void walk(Walker w) {
+    w.visitExpression(this);
+    expression.walk(w);
+  }
+  
+  @Override
+  public boolean isUngrouped() {
+    return true;
+  }
+  
+  @Override
   public int getConstantIndex() {
     return expression.getConstantIndex();
   }
   
   @Override
-  public void print(Output out) {
+  public void print(Decompiler d, Output out) {
     out.print(op);
     if(precedence > expression.precedence) out.print("(");
-    expression.print(out);
+    expression.print(d, out);
     if(precedence > expression.precedence) out.print(")");
   }
   

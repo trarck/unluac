@@ -3,7 +3,9 @@ package unluac.decompile.expression;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import unluac.decompile.Decompiler;
 import unluac.decompile.Output;
+import unluac.decompile.Walker;
 
 public class TableLiteral extends Expression {
 
@@ -13,6 +15,7 @@ public class TableLiteral extends Expression {
     public final Expression value;
     public final boolean isList;
     public final int timestamp;
+    private boolean hash;
     
     public Entry(Expression key, Expression value, boolean isList, int timestamp) {
       this.key = key;
@@ -33,15 +36,25 @@ public class TableLiteral extends Expression {
   private boolean isList = true;
   private int listLength = 1;
   
-  public TableLiteral() {
-    this(5, 5);
-  }
-
+  private final int hashSize;
+  private int hashCount;
+  
   public TableLiteral(int arraySize, int hashSize) {
     super(PRECEDENCE_ATOMIC);
     entries = new ArrayList<Entry>(arraySize + hashSize);
+    this.hashSize = hashSize;
+    hashCount = 0;
   }
 
+  @Override
+  public void walk(Walker w) {
+    w.visitExpression(this);
+    for(Entry entry : entries) {
+      entry.key.walk(w);
+      entry.value.walk(w);
+    }
+  }
+  
   @Override
   public int getConstantIndex() {
     int index = -1;
@@ -53,7 +66,7 @@ public class TableLiteral extends Expression {
   }
   
   @Override
-  public void print(Output out) {
+  public void print(Decompiler d, Output out) {
     Collections.sort(entries);
     listLength = 1;
     if(entries.isEmpty()) {
@@ -77,7 +90,7 @@ public class TableLiteral extends Expression {
         out.println();
         out.indent();
       }
-      printEntry(0, out);
+      printEntry(d, 0, out);
       if(!entries.get(0).value.isMultiple()) {
         for(int index = 1; index < entries.size(); index++) {
           out.print(",");
@@ -86,7 +99,7 @@ public class TableLiteral extends Expression {
           } else {
             out.print(" ");
           }
-          printEntry(index, out);
+          printEntry(d, index, out);
           if(entries.get(index).value.isMultiple()) {
             break;
           }
@@ -100,7 +113,7 @@ public class TableLiteral extends Expression {
     }    
   }
   
-  private void printEntry(int index, Output out) {
+  private void printEntry(Decompiler d, int index, Output out) {
     Entry entry = entries.get(index);
     Expression key = entry.key;
     Expression value = entry.value;
@@ -108,20 +121,20 @@ public class TableLiteral extends Expression {
     boolean multiple = index + 1 >= entries.size() || value.isMultiple();
     if(isList && key.isInteger() && listLength == key.asInteger()) {
       if(multiple) {
-        value.printMultiple(out);
+        value.printMultiple(d, out);
       } else {
-        value.print(out);
+        value.print(d, out);
       }
       listLength++;
-    } else if(isObject && key.isIdentifier()) {
+    } else if(entry.hash/*isObject && key.isIdentifier()*/) {
       out.print(key.asName());
       out.print(" = ");
-      value.print(out);
+      value.print(d, out);
     } else {
       out.print("[");
-      key.print(out);
+      key.printBraced(d, out);
       out.print("] = ");
-      value.print(out);
+      value.print(d, out);
     }
   }
   
@@ -131,7 +144,21 @@ public class TableLiteral extends Expression {
   }
   
   @Override
+  public boolean isUngrouped() {
+    return true;
+  }
+  
+  @Override
+  public boolean isNewEntryAllowed() {
+    return true;
+  }
+  
+  @Override
   public void addEntry(Entry entry) {
+    if(hashCount < hashSize && entry.key.isIdentifier()) {
+      entry.hash = true;
+      hashCount++;
+    }
     entries.add(entry);
     isObject = isObject && (entry.isList || entry.key.isIdentifier());
     isList = isList && entry.isList;

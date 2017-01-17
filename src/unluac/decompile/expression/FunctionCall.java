@@ -2,7 +2,9 @@ package unluac.decompile.expression;
 
 import java.util.ArrayList;
 
+import unluac.decompile.Decompiler;
 import unluac.decompile.Output;
+import unluac.decompile.Walker;
 
 public class FunctionCall extends Expression {
 
@@ -18,6 +20,15 @@ public class FunctionCall extends Expression {
   }
 
   @Override
+  public void walk(Walker w) {
+    w.visitExpression(this);
+    function.walk(w);
+    for(Expression expression : arguments) {
+      expression.walk(w);
+    }
+  }
+  
+  @Override
   public int getConstantIndex() {
     int index = function.getConstantIndex();
     for(Expression argument : arguments) {
@@ -32,11 +43,11 @@ public class FunctionCall extends Expression {
   }
   
   @Override
-  public void printMultiple(Output out) {
+  public void printMultiple(Decompiler d, Output out) {
     if(!multiple) {
       out.print("(");
     }
-    print(out);
+    print(d, out);
     if(!multiple) {
       out.print(")");
     }
@@ -50,23 +61,23 @@ public class FunctionCall extends Expression {
   public boolean beginsWithParen() {
     if(isMethodCall()) {
       Expression obj = function.getTable();
-      return obj.isClosure() || obj.isConstant() || obj.beginsWithParen();
+      return obj.isUngrouped() || obj.beginsWithParen();
     } else {
-      return function.isClosure() || function.isConstant() || function.beginsWithParen();
+      return function.isUngrouped() || function.beginsWithParen();
     }
   }
   
   @Override
-  public void print(Output out) {
+  public void print(Decompiler d, Output out) {
     ArrayList<Expression> args = new ArrayList<Expression>(arguments.length);
     if(isMethodCall()) {
       Expression obj = function.getTable();
-      if(obj.isClosure() || obj.isConstant()) {
+      if(obj.isUngrouped()) {
         out.print("(");
-        obj.print(out);
+        obj.print(d, out);
         out.print(")");
       } else {
-        obj.print(out);
+        obj.print(d, out);
       }
       out.print(":");
       out.print(function.getField());
@@ -74,19 +85,19 @@ public class FunctionCall extends Expression {
         args.add(arguments[i]);
       }
     } else {
-      if(function.isClosure() || function.isConstant()) {
+      if(function.isUngrouped()) {
         out.print("(");
-        function.print(out);
+        function.print(d, out);
         out.print(")");
       } else {
-        function.print(out);
+        function.print(d, out);
       }
       for(int i = 0; i < arguments.length; i++) {
         args.add(arguments[i]);
       }
     }
     out.print("(");
-    Expression.printSequence(out, args, false, true);
+    Expression.printSequence(d, out, args, false, true);
     out.print(")");
   }
   

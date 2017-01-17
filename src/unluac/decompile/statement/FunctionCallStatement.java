@@ -1,6 +1,8 @@
 package unluac.decompile.statement;
 
+import unluac.decompile.Decompiler;
 import unluac.decompile.Output;
+import unluac.decompile.Walker;
 import unluac.decompile.expression.FunctionCall;
 
 public class FunctionCallStatement extends Statement {
@@ -12,8 +14,14 @@ public class FunctionCallStatement extends Statement {
   }
 
   @Override
-  public void print(Output out) {
-    call.print(out);
+  public void walk(Walker w) {
+    w.visitStatement(this);
+    call.walk(w);
+  }
+  
+  @Override
+  public void print(Decompiler d, Output out) {
+    call.print(d, out);
   }
   
   @Override

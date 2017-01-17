@@ -3,6 +3,7 @@ package unluac.decompile;
 import java.util.HashSet;
 import java.util.Set;
 
+import unluac.Version;
 import unluac.parse.LBoolean;
 import unluac.parse.LNil;
 import unluac.parse.LNumber;
@@ -76,7 +77,7 @@ public class Constant {
     }
   }
   
-  public void print(Output out) {
+  public void print(Decompiler d, Output out, boolean braced) {
     switch(type) {
       case 0:
         out.print("nil");
@@ -90,6 +91,7 @@ public class Constant {
       case 3:
         int newlines = 0;
         int unprintable = 0;
+        boolean rawstring = d.getConfiguration().rawstring;
         for(int i = 0; i < string.length(); i++) {
           char c = string.charAt(i);
           if(c == '\n') {
@@ -98,16 +100,25 @@ public class Constant {
             unprintable++;
           }
         }
-        if(unprintable == 0 && !string.contains("[[") && (newlines > 1 || (newlines == 1 && string.indexOf('\n') != string.length() - 1))) {
+        boolean longString = (newlines > 1 || (newlines == 1 && string.indexOf('\n') != string.length() - 1)); // heuristic
+        longString = longString && unprintable == 0; // can't escape and for robustness, don't want to allow non-ASCII output
+        longString = longString && !string.contains("[["); // triggers compatibility error in 5.1 TODO: avoidable?
+        if(d.function.header.version == Version.LUA50) {
+          longString = longString && !string.contains("]]") && !string.endsWith("]"); // no piping TODO: allow proper nesting
+        }
+        if(longString) {
           int pipe = 0;
           String pipeString = "]]";
-          while(string.indexOf(pipeString) >= 0) {
+          String startPipeString = "]";
+          while(string.endsWith(startPipeString) || string.indexOf(pipeString) >= 0) {
             pipe++;
             pipeString = "]";
             int i = pipe;
             while(i-- > 0) pipeString += "=";
+            startPipeString = pipeString;
             pipeString += "]";
           }
+          if(braced) out.print("(");
           out.print("[");
           while(pipe-- > 0) out.print("=");
           out.print("[");
@@ -116,6 +127,7 @@ public class Constant {
           out.println();
           out.print(string);
           out.print(pipeString);
+          if(braced) out.print(")");
           out.setIndentationLevel(indent);
         } else {
           out.print("\"");
@@ -136,7 +148,7 @@ public class Constant {
                 out.print("\\t");
               } else if(c == 11) {
                 out.print("\\v");
-              } else {
+              } else if(!rawstring || c <= 127) {
                 String dec = Integer.toString(c);
                 int len = dec.length();
                 out.print("\\");
@@ -144,6 +156,8 @@ public class Constant {
                   out.print("0");
                 }
                 out.print(dec);
+              } else {
+                out.print((byte)c);
               }
             } else if(c == 34) {
               out.print("\\\"");

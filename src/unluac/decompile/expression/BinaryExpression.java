@@ -1,6 +1,8 @@
 package unluac.decompile.expression;
 
+import unluac.decompile.Decompiler;
 import unluac.decompile.Output;
+import unluac.decompile.Walker;
 
 public class BinaryExpression extends Expression {
 
@@ -18,6 +20,18 @@ public class BinaryExpression extends Expression {
   }
 
   @Override
+  public void walk(Walker w) {
+    w.visitExpression(this);
+    left.walk(w);
+    right.walk(w);
+  }
+  
+  @Override
+  public boolean isUngrouped() {
+    return !beginsWithParen();
+  }
+  
+  @Override
   public int getConstantIndex() {
     return Math.max(left.getConstantIndex(), right.getConstantIndex());
   }
@@ -28,17 +42,17 @@ public class BinaryExpression extends Expression {
   }
   
   @Override
-  public void print(Output out) {
+  public void print(Decompiler d, Output out) {
     final boolean leftGroup = leftGroup();
     final boolean rightGroup = rightGroup();
     if(leftGroup) out.print("(");
-    left.print(out);
+    left.print(d, out);
     if(leftGroup) out.print(")");
     out.print(" ");
     out.print(op);
     out.print(" ");
     if(rightGroup) out.print("(");
-    right.print(out);
+    right.print(d, out);
     if(rightGroup) out.print(")");
   }
   

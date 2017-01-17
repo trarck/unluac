@@ -1,27 +1,37 @@
 package unluac.decompile.block;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import unluac.decompile.Decompiler;
 import unluac.decompile.Output;
 import unluac.decompile.Registers;
-import unluac.decompile.branch.Branch;
+import unluac.decompile.Walker;
+import unluac.decompile.condition.Condition;
+import unluac.decompile.expression.Expression;
 import unluac.decompile.statement.Statement;
 import unluac.parse.LFunction;
 
-public class WhileBlock extends Block {
+public class WhileBlock extends ContainerBlock {
 
-  private final Branch branch;
-  private final int loopback;
-  private final Registers r;
-  private final List<Statement> statements;
+  private final Condition cond;
   
-  public WhileBlock(LFunction function, Branch branch, int loopback, Registers r) {
-    super(function, branch.begin, branch.end);
-    this.branch = branch;
-    this.loopback = loopback;
-    this.r = r;
-    statements = new ArrayList<Statement>(branch.end - branch.begin + 1);
+  private Expression condexpr;
+  
+  public WhileBlock(LFunction function, Condition cond, int begin, int end) {
+    super(function, begin, end, -1);
+    this.cond = cond;
+  }
+  
+  @Override
+  public void resolve(Registers r) {
+    condexpr = cond.asExpression(r);
+  }
+  
+  @Override
+  public void walk(Walker w) {
+    w.visitStatement(this);
+    condexpr.walk(w);
+    for(Statement statement : statements) {
+      statement.walk(w);
+    }
   }
   
   @Override
@@ -35,33 +45,23 @@ public class WhileBlock extends Block {
   }
   
   @Override
-  public boolean isContainer() {
-    return true;
-  }
-  
-  @Override
-  public void addStatement(Statement statement) {
-    statements.add(statement);
-  }
-  
-  @Override
   public boolean isUnprotected() {
     return true;
   }
   
   @Override
   public int getLoopback() {
-    return loopback;
+    throw new IllegalStateException();
   }
   
   @Override
-  public void print(Output out) {
+  public void print(Decompiler d, Output out) {
     out.print("while ");
-    branch.asExpression(r).print(out);
+    condexpr.print(d, out);
     out.print(" do");
     out.println();
     out.indent();
-    Statement.printSequence(out, statements);
+    Statement.printSequence(d, out, statements);
     out.dedent();
     out.print("end");
   }

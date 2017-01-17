@@ -1,30 +1,45 @@
 package unluac.decompile.block;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import unluac.decompile.Decompiler;
 import unluac.decompile.Output;
 import unluac.decompile.Registers;
-import unluac.decompile.branch.Branch;
+import unluac.decompile.Walker;
+import unluac.decompile.condition.Condition;
+import unluac.decompile.expression.Expression;
 import unluac.decompile.statement.Statement;
 import unluac.parse.LFunction;
 
-public class IfThenElseBlock extends Block {
+public class IfThenElseBlock extends ContainerBlock {
 
-  private final Branch branch;
-  private final int loopback;
-  private final Registers r;
-  private final List<Statement> statements;
-  private final boolean emptyElse;
+  private final Condition cond;
+  private final int elseTarget;
   public ElseEndBlock partner;
   
-  public IfThenElseBlock(LFunction function, Branch branch, int loopback, boolean emptyElse, Registers r) {
-    super(function, branch.begin, branch.end);
-    this.branch = branch;
-    this.loopback = loopback;
-    this.emptyElse = emptyElse;
-    this.r = r;
-    statements = new ArrayList<Statement>(branch.end - branch.begin + 1);
+  private Expression condexpr;
+  
+  public IfThenElseBlock(LFunction function, Condition cond, int begin, int end, int elseTarget) {
+    super(function, begin, end, -1);
+    this.cond = cond;
+    this.elseTarget = elseTarget;
+  }
+  
+  @Override
+  public void resolve(Registers r) {
+    condexpr = cond.asExpression(r);
+  }
+  
+  @Override
+  public void walk(Walker w) {
+    w.visitStatement(this);
+    condexpr.walk(w);
+    for(Statement statement : statements) {
+      statement.walk(w);
+    }
+  }
+  
+  @Override
+  public boolean suppressNewline() {
+    return true;
   }
   
   @Override
@@ -42,16 +57,6 @@ public class IfThenElseBlock extends Block {
   }
   
   @Override
-  public boolean isContainer() {
-    return true;
-  }
-  
-  @Override
-  public void addStatement(Statement statement) {
-    statements.add(statement);
-  }
-  
-  @Override
   public int scopeEnd() {
     return end - 2;
   }
@@ -62,32 +67,38 @@ public class IfThenElseBlock extends Block {
   }
   
   @Override
-  public int getLoopback() {
-    return loopback;
+  public int getUnprotectedLine() {
+    return end - 1;
   }
   
   @Override
-  public void print(Output out) {
+  public int getUnprotectedTarget() {
+    return elseTarget;
+  }
+  
+  @Override
+  public int getLoopback() {
+    throw new IllegalStateException();
+  }
+  
+  @Override
+  public void print(Decompiler d, Output out) {
     out.print("if ");
-    branch.asExpression(r).print(out);
+    condexpr.print(d, out);
     out.print(" then");
     out.println();
     out.indent();
-    //Handle the case where the "then" is empty in if-then-else.
-    //The jump over the else block is falsely detected as a break.
-    if(statements.size() == 1 && statements.get(0) instanceof Break) {
-      Break b = (Break) statements.get(0);
-      if(b.target == loopback) {
-        out.dedent();
-        return;
-      }
-    }
-    Statement.printSequence(out, statements);
+    
+    Statement.printSequence(d, out, statements);
+    
     out.dedent();
-    if(emptyElse) {
+    
+    // Handle the "empty else" case
+    if(end == elseTarget) {
       out.println("else");
       out.println("end");
     }
+    
   }
   
 }

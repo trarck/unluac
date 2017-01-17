@@ -1,30 +1,64 @@
 package unluac.decompile.expression;
 
 import unluac.decompile.Constant;
+import unluac.decompile.Decompiler;
 import unluac.decompile.Output;
+import unluac.decompile.Walker;
+import unluac.parse.LNil;
 
 public class ConstantExpression extends Expression {
 
   private final Constant constant;
   private final int index;
+  private final int line;
+  
+  public static ConstantExpression createNil(int line) {
+    return new ConstantExpression(new Constant(LNil.NIL), -1, line);
+  }
   
   public ConstantExpression(Constant constant, int index) {
+    this(constant, index, -1);
+  }
+  
+  private ConstantExpression(Constant constant, int index, int line) {
     super(PRECEDENCE_ATOMIC);
     this.constant = constant;
     this.index = index;
+    this.line = line;
   }
 
+  @Override
+  public void walk(Walker w) {
+    w.visitExpression(this);
+  }
+  
+  @Override
   public int getConstantIndex() {
     return index;
   }
   
   @Override
-  public void print(Output out) {
-    constant.print(out);
+  public int getConstantLine() {
+    return line;
+  }
+  
+  @Override
+  public void print(Decompiler d, Output out) {
+    constant.print(d, out, false);
+  }
+  
+  @Override
+  public void printBraced(Decompiler d, Output out) {
+    constant.print(d, out, true);
   }
   
   @Override
   public boolean isConstant() {
+    return true;
+  }
+  
+  @Override
+  public boolean isUngrouped() {
     return true;
   }
   

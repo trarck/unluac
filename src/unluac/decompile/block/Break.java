@@ -1,6 +1,8 @@
 package unluac.decompile.block;
 
+import unluac.decompile.Decompiler;
 import unluac.decompile.Output;
+import unluac.decompile.Walker;
 import unluac.decompile.statement.Statement;
 import unluac.parse.LFunction;
 
@@ -9,10 +11,15 @@ public class Break extends Block {
   public final int target;
   
   public Break(LFunction function, int line, int target) {
-    super(function, line, line);
+    super(function, line, line, 2);
     this.target = target;
   }
 
+  @Override
+  public void walk(Walker w) {
+    w.visitStatement(this);
+  }
+  
   @Override
   public void addStatement(Statement statement) {
     throw new IllegalStateException();
@@ -21,6 +28,11 @@ public class Break extends Block {
   @Override
   public boolean isContainer() {
     return false;
+  }
+  
+  @Override
+  public boolean isEmpty() {
+    return true;
   }
   
   @Override
@@ -40,12 +52,12 @@ public class Break extends Block {
   }
 
   @Override
-  public void print(Output out) {
+  public void print(Decompiler d, Output out) {
     out.print("do break end");
   }
   
   @Override
-  public void printTail(Output out) {
+  public void printTail(Decompiler d, Output out) {
     out.print("break");
   }
   

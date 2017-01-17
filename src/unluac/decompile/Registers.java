@@ -36,8 +36,9 @@ public class Registers {
       }
     }
     values = new Expression[registers][length + 1];
+    Expression nil = ConstantExpression.createNil(0);
     for(int register = 0; register < registers; register++) {
-      values[register][0] = Expression.NIL;
+      values[register][0] = nil;
     }
     updated = new int[registers][length + 1];
     startedLines = new boolean[length + 1];
@@ -56,7 +57,7 @@ public class Registers {
   
   public boolean isNewLocal(int register, int line) {
     Declaration decl = decls[register][line];
-    return decl != null && decl.begin == line && !decl.forLoop;
+    return decl != null && decl.begin == line && !decl.forLoop && !decl.forLoopExplicit;
   }
     
   public List<Declaration> getNewLocals(int line) {
@@ -84,6 +85,10 @@ public class Registers {
     }
   }
   
+  public boolean isKConstant(int register) {
+    return f.isConstant(register);
+  }
+  
   public Expression getExpression(int register, int line) {
     if(isLocal(register, line - 1)) {
       return new LocalVariable(getDeclaration(register, line - 1));
@@ -93,8 +98,8 @@ public class Registers {
   }
   
   public Expression getKExpression(int register, int line) {
-    if((register & 0x100) != 0) {
-      return f.getConstantExpression(register & 0xFF);
+    if(f.isConstant(register)) {
+      return f.getConstantExpression(f.constantIndex(register));
     } else {
       return getExpression(register, line);
     }
@@ -126,6 +131,14 @@ public class Registers {
       decl = new Declaration("_FOR_", begin, end);
       decl.register = register;
       newDeclaration(decl, register, begin, end);
+      throw new IllegalStateException("TEMP");
+      
+    } else {
+      if(decl.begin != begin || decl.end != end) {
+        System.err.println("given: " + begin + " " + end);
+        System.err.println("expected: " + decl.begin + " " + decl.end);
+        throw new IllegalStateException();
+      }
     }
     decl.forLoop = true;
   }
@@ -136,6 +149,14 @@ public class Registers {
       decl = new Declaration("_FORV_" + register + "_", begin, end);
       decl.register = register;
       newDeclaration(decl, register, begin, end);
+      throw new IllegalStateException("TEMP");
+      
+    } else {
+      if(decl.begin != begin || decl.end != end) {
+        System.err.println("given: " + begin + " " + end);
+        System.err.println("expected: " + decl.begin + " " + decl.end);
+        throw new IllegalStateException();
+      }
     }
     decl.forLoopExplicit = true;
   }
